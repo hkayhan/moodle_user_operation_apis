@@ -11,7 +11,7 @@ import (
 func CopyUsers(c *gin.Context) {
 
 	usersAPI := os.Getenv("SOURCE_URL") + "/users"
-	lmsAPI := os.Getenv("MOODLE_URL") + "/users"
+	lmsAPI := os.Getenv("LMS_URL")
 	pageSize := 1000 // her seferde 1000 kullanıcı çekeceğiz
 	page := 1        // ilk sayfadan başlıyoruz
 
@@ -29,27 +29,46 @@ func CopyUsers(c *gin.Context) {
 		}
 
 		for _, user := range users {
-			exists, err := services.CheckUserInLMS(lmsAPI, user.Email)
+			lmsUser, err := services.CheckUserInLMS(lmsAPI, user.TCKNO)
 			if err != nil {
 				fmt.Println("LMS sorgusu sırasında hata oluştu: %v", err)
 				continue
 			}
 
-			if exists {
-				err := services.UpdateUserInLMS(lmsAPI, user)
+			if lmsUser.ID > 0 {
+				err := services.UpdateUserInLMS(lmsAPI, lmsUser, user)
 				if err != nil {
 					fmt.Println("Kullanıcı güncellenirken hata oluştu: %v", err)
 				} else {
-					fmt.Println("Kullanıcı güncellendi: %s\n", user.Email)
+					fmt.Println("Kullanıcı güncellendi:", user.TCKNO)
 				}
+
 			} else {
 				err := services.CreateUserInLMS(lmsAPI, user)
 				if err != nil {
 					fmt.Println("Yeni kullanıcı oluşturulurken hata oluştu: %v", err)
 				} else {
-					fmt.Println("Yeni kullanıcı oluşturuldu: ", user.Email)
+					fmt.Println("Yeni kullanıcı oluşturuldu: ", user.TCKNO)
 				}
 			}
+
+			fmt.Println(lmsUser)
+			/*
+				if exists {
+					err := services.UpdateUserInLMS(lmsAPI, user)
+					if err != nil {
+						fmt.Println("Kullanıcı güncellenirken hata oluştu: %v", err)
+					} else {
+						fmt.Println("Kullanıcı güncellendi: %s\n", user.Email)
+					}
+				} else {
+					err := services.CreateUserInLMS(lmsAPI, user)
+					if err != nil {
+						fmt.Println("Yeni kullanıcı oluşturulurken hata oluştu: %v", err)
+					} else {
+						fmt.Println("Yeni kullanıcı oluşturuldu: ", user.Email)
+					}
+				}*/
 		}
 
 		// Bir sonraki sayfaya geçiyoruz
