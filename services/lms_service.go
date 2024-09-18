@@ -24,8 +24,8 @@ func CheckUserInLMS(apiURL string, username string) (bool, error) {
 	return false, nil
 }*/
 
-func CheckUserInLMS(apiURL string, username string) (models.MoodleUser, error) {
-	url := apiURL + "core_user_get_users&criteria[0][key]=username&moodlewsrestformat=json&criteria[0][value]=" + username
+func CheckUserInLMS(apiURL, lmsToken string, username string) (models.MoodleUser, error) {
+	url := apiURL + "wstoken=" + lmsToken + "&wsfunction=core_user_get_users&criteria[0][key]=username&moodlewsrestformat=json&criteria[0][value]=" + username
 	resp, err := http.Get(url)
 	if err != nil {
 		return models.MoodleUser{}, err
@@ -84,10 +84,10 @@ func UpdateUserInLMS(apiURL string, user models.MoodleUser) error {
 	return nil
 }*/
 
-func UpdateUserInLMS(apiURL string, moodleUser models.MoodleUser, sourceUser models.User) error {
+func UpdateUserInLMS(apiURL, lmsToken string, moodleUser models.MoodleUser, sourceUser models.User) error {
 	//url := apiURL + "core_user_get_users&criteria[0][key]=username&moodlewsrestformat=json&criteria[0][value]=" + username
 
-	updateBaseUrl := apiURL + "core_user_update_users"
+	updateBaseUrl := apiURL + "wstoken=" + lmsToken + "&wsfunction=core_user_update_users"
 	updateUrl := createURLWithUserUpdate(moodleUser, sourceUser, updateBaseUrl)
 
 	method := "POST"
@@ -120,9 +120,9 @@ func UpdateUserInLMS(apiURL string, moodleUser models.MoodleUser, sourceUser mod
 	return nil
 }
 
-func CreateUserInLMS(apiURL string, sourceUser models.User) error {
+func CreateUserInLMS(apiURL, lmsToken string, sourceUser models.User) error {
 
-	updateUrl := createURLWithUserCreate(sourceUser, apiURL+"core_user_create_users")
+	updateUrl := createURLWithUserCreate(sourceUser, apiURL+"wstoken="+lmsToken+"&wsfunction=core_user_create_users")
 
 	method := "POST"
 
@@ -140,12 +140,12 @@ func CreateUserInLMS(apiURL string, sourceUser models.User) error {
 	}
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		//fmt.Println(err)
 		return err
 	}
-	//fmt.Println(string(body))
+	fmt.Println(string(body))
 	return nil
 }
 
@@ -173,11 +173,23 @@ func createURLWithUserCreate(user models.User, baseUrl string) string {
 	// URL'yi doğrudan fmt.Sprintf ile birleştiriyoruz
 	finalURL := fmt.Sprintf("%s&users[0][username]=%s&users[0][password]=%s&users[0][firstname]=%s&users[0][lastname]=%s&users[0][email]=%s&moodlewsrestformat=json",
 		baseUrl,
-		url.QueryEscape(user.TCKNO),        // Özel karakterleri escape et
-		url.QueryEscape("u1ser.FirstName"), // Şifreyi URL'ye uygun hale getir
-		url.QueryEscape(user.FirstName),    // İsimdeki özel karakterler için escape
-		url.QueryEscape(user.LastName),     // Soyisimdeki özel karakterler için escape
-		url.QueryEscape(user.Email))        // Email için escape
+		url.QueryEscape(user.TCKNO), // Özel karakterleri escape et
+		url.QueryEscape(user.TCKNO+"_"+firstN(user.FirstName)), // Şifreyi URL'ye uygun hale getir
+		url.QueryEscape(user.FirstName),                        // İsimdeki özel karakterler için escape
+		url.QueryEscape(user.LastName),                         // Soyisimdeki özel karakterler için escape
+		url.QueryEscape(user.Email))                            // Email için escape
 
 	return finalURL
+}
+
+func firstN(s string) string {
+	n := 3
+	i := 0
+	for j := range s {
+		if i == n {
+			return s[:j]
+		}
+		i++
+	}
+	return s
 }

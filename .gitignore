@@ -1,2 +1,4 @@
 json-server
 *.iml
+
+.env

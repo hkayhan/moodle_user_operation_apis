@@ -1,17 +1,37 @@
 package models
 
-var HealthStatus = ""
+var HealthStatus = "Server Runing"
 
 type User struct {
-	ID        int    `json:"id"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Email     string `json:"email"`
-	Job       string `json:"job"`
-	TCKNO     string `json:"TCKNO"`
+	ID               int64  `json:"id"`
+	FirstName        string `json:"ad"`
+	LastName         string `json:"soyad"`
+	Email            string `json:"ePosta"`
+	GuncellemeTarihi string `json:"guncellemeTarihi"`
+	TCKNO            string `json:"tcKimlikNo"`
 }
 
-type UsersResponse []User
+type UserSource struct {
+	Ad               string `json:"ad"`
+	EPosta           string `json:"ePosta"`
+	GuncellemeTarihi string `json:"guncellemeTarihi"`
+	ID               int    `json:"id"`
+	Soyad            string `json:"soyad"`
+	TcKimlikNo       string `json:"tcKimlikNo"`
+}
+
+type UsersResponse struct {
+	Users []User `json:"PersonelOzetDto"`
+}
+
+type UsersResponseSource struct {
+	BagliKurulusPersonelListeSorgulaResult struct {
+		Aciklama          string `json:"aciklama"`
+		Data              []User `json:"data"`
+		IslemBasarilimi   bool   `json:"islemBasarilimi"`
+		ToplamKayitSayisi int    `json:"toplamKayitSayisi"`
+	} `json:"BagliKurulusPersonelListeSorgulaResult"`
+}
 
 type MoodleUser struct {
 	ID                   int    `json:"id"`
